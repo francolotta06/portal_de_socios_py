@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block layout %}
+<div class="admin-layout">
+    <div class="sidebar-admin">
+        <div class="text-center mb-4 mt-2">
+            <div class="mb-2">
+                <img src="{{ url_for('static', filename='img/escudo.png') }}" alt="Escudo" class="img-fluid escudo-barra">
+            </div>
+            <h5 class="fw-bold mb-0 text-white">Administración</h5>
+            <small class="text-white-50 subtitulo-mayus">Club de Fútbol</small>
+        </div>
+
+        <nav class="nav flex-column flex-grow-1">
+            <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
+               href="{{ url_for('admin.dashboard') }}">
+                <i class="bi bi-grid-1x2-fill"></i> Dashboard
+            </a>
+            <a class="nav-link {% if request.endpoint == 'admin.gestionar_cuotas' %}active{% endif %}"
+               href="{{ url_for('admin.gestionar_cuotas') }}">
+                <i class="bi bi-wallet2"></i> Cuotas
+            </a>
+            <a class="nav-link {% if request.endpoint == 'admin.gestionar_entradas' %}active{% endif %}"
+               href="{{ url_for('admin.gestionar_entradas') }}">
+                <i class="bi bi-ticket-perforated-fill"></i> Entradas
+            </a>
+        
+        </nav>
+
+        <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
+            <a class="nav-link d-flex align-items-center gap-2 fw-semibold py-2 px-3 rounded-3"
+               style="background-color:#C0392B;color:#ffffff;font-size:0.85rem;"
+               href="{{ url_for('socios.logout') }}">
+                <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+            </a>
+        </div>
+    </div>
+
+    <main class="main-content-admin">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show small shadow-sm" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block admin_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

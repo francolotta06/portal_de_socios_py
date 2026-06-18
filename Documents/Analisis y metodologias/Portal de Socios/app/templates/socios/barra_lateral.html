@@ -1,0 +1,36 @@
+<div class="sidebar-admin">
+    <div class="text-center mb-4 mt-2">
+        <div class="mb-2">
+            <img src="{{ url_for('static', filename='img/escudo.png') }}" alt="Escudo" class="img-fluid escudo-barra">
+        </div>
+        <h4 class="fw-bold mb-0 text-white">Portal de Socios</h4>
+        <small class="text-white-50 subtitulo-barra">Club Atlético</small>
+    </div>
+
+    <nav class="nav flex-column flex-grow-1">
+        <a class="nav-link {% if request.endpoint == 'socios.perfil' %}active{% endif %}"
+           href="{{ url_for('socios.perfil') }}">
+            <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+        <a class="nav-link {% if 'cuota' in request.path %}active{% endif %}"
+           href="{{ url_for('cuotas.mis_cuotas') }}">
+            <i class="bi bi-wallet2"></i> Cuotas
+        </a>
+        <a class="nav-link {% if 'entrada' in request.path %}active{% endif %}"
+           href="{{ url_for('entradas.index') }}">
+            <i class="bi bi-ticket-perforated"></i> Entradas
+        </a>
+        
+        <a class="nav-link {% if request.endpoint == 'socios.carnet' %}active{% endif %}"
+           href="{{ url_for('socios.carnet') }}">
+            <i class="bi bi-person-circle"></i> Profile
+        </a>
+    </nav>
+
+    <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
+        <a class="nav-link d-flex align-items-center gap-2 py-2 px-2 small text-white-50"
+           href="{{ url_for('socios.logout') }}">
+            <i class="bi bi-box-arrow-left"></i> Logout
+        </a>
+    </div>
+</div>

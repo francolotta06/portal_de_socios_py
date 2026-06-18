@@ -1,0 +1,200 @@
+{% extends 'socios/layout_socio.html' %}
+{% block socio_content %}
+
+        <!-- Top bar -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold m-0" style="color:var(--primary-color);">Gestionar Entradas</h4>
+            <div class="d-flex align-items-center gap-3">
+                {% if socio.estado == 'al_dia' %}
+                <span class="badge px-2 py-1 d-flex align-items-center gap-1"
+                      style="background:#DCFCE7;color:#15803D;font-size:0.72rem;">
+                    <i class="bi bi-check-circle-fill"></i> Socio al día
+                </span>
+                {% endif %}
+                <i class="bi bi-bell fs-5 text-muted"></i>
+                <div class="avatar-circle">{{ current_user.nombre[0] }}{{ current_user.apellido[0] }}</div>
+            </div>
+        </div>
+
+        <!-- Próximos Partidos -->
+        <div class="mb-4">
+            <h6 class="fw-bold mb-1" style="color:var(--primary-color);">Próximos Partidos</h6>
+            <p class="text-muted small mb-3">Seleccioná el encuentro para comprar tu entrada.</p>
+
+            <div class="row g-3">
+                {% for p in partidos %}
+                {% set total_cap  = p.sectores | sum(attribute='capacidad') if p.sectores else 1 %}
+                {% set total_vend = p.sectores | sum(attribute='vendidos') if p.sectores else 0 %}
+                {% set agotado = (total_vend >= total_cap) %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border rounded-4 overflow-hidden h-100 shadow-sm"
+                         style="border-color:#E2E8F0 !important;">
+
+                        <!-- Card header dark -->
+                        <div class="p-3 position-relative"
+                             style="background:linear-gradient(135deg,var(--primary-color),var(--tertiary-color));">
+                            {% if not agotado %}
+                            <span class="badge position-absolute top-0 end-0 m-2 px-2 py-1"
+                                  style="background:var(--secondary-color);color:#000;font-size:0.65rem;font-weight:700;">
+                                VENTA HABILITADA
+                            </span>
+                            {% else %}
+                            <span class="badge position-absolute top-0 end-0 m-2 px-2 py-1"
+                                  style="background:#6B7280;color:#fff;font-size:0.65rem;font-weight:700;">
+                                AGOTADO
+                            </span>
+                            {% endif %}
+
+                            <div class="d-flex align-items-center justify-content-center gap-4 py-2">
+                                <div class="text-center">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1"
+                                         style="width:46px;height:46px;background:rgba(255,255,255,0.15);">
+                                        <i class="bi bi-shield-fill-check text-white fs-4"></i>
+                                    </div>
+                                    <div class="text-white fw-bold" style="font-size:0.7rem;text-transform:uppercase;">Club<br>Atlético</div>
+                                </div>
+                                <span class="fw-bold text-white opacity-75">vs</span>
+                                <div class="text-center">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1"
+                                         style="width:46px;height:46px;background:rgba(255,255,255,0.1);">
+                                        <i class="bi bi-dribbble text-white-50 fs-4"></i>
+                                    </div>
+                                    <div class="text-white-50 fw-bold" style="font-size:0.7rem;text-transform:uppercase;">{{ p.rival[:12] }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card body -->
+                        <div class="p-3 bg-white d-flex flex-column gap-2">
+                            <div class="d-flex align-items-center gap-2 text-muted" style="font-size:0.78rem;">
+                                <i class="bi bi-calendar3" style="color:var(--primary-color);"></i>
+                                {% if p.fecha %}{{ p.fecha.strftime('%A %d de %B') }}{% endif %}
+                            </div>
+                            <div class="d-flex align-items-center gap-2 text-muted" style="font-size:0.78rem;">
+                                <i class="bi bi-clock" style="color:var(--primary-color);"></i>
+                                {% if p.fecha %}{{ p.fecha.strftime('%H:%M') }}hs{% endif %}
+                            </div>
+                            <div class="d-flex align-items-center gap-2 text-muted" style="font-size:0.78rem;">
+                                <i class="bi bi-building" style="color:var(--primary-color);"></i>
+                                {{ p.estadio }}
+                            </div>
+
+                            <div class="mt-2">
+                                {% if not agotado %}
+                                <a href="{{ url_for('entradas.comprar', partido_id=p['_id']) }}"
+                                   class="btn w-100 fw-bold py-2"
+                                   style="background-color:var(--primary-color);color:#fff;border:none;border-radius:8px;font-size:0.82rem;">
+                                    Comprar Entrada
+                                </a>
+                                {% else %}
+                                <button class="btn w-100 py-2 fw-bold" disabled
+                                        style="background:#F1F5F9;color:#94A3B8;border:none;border-radius:8px;font-size:0.82rem;">
+                                    Sin localidades
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12">
+                    <div class="text-center text-muted py-4 small">
+                        <i class="bi bi-calendar-x d-block fs-3 mb-2"></i>
+                        No hay partidos programados por el momento.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Historial de Compras -->
+        <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history" style="color:var(--primary-color);"></i>
+                    <h6 class="fw-bold m-0" style="color:var(--primary-color);">Historial de Compras</h6>
+                </div>
+                <a href="{{ url_for('entradas.historial') }}" class="text-decoration-none small fw-semibold"
+                   style="color:var(--primary-color);">Ver todos</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:0.82rem;">
+                    <thead style="font-size:0.68rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">
+                        <tr class="border-bottom border-light">
+                            <th class="border-0 pb-2 ps-4">Partido</th>
+                            <th class="border-0 pb-2">Fecha Compra</th>
+                            <th class="border-0 pb-2">Sector</th>
+                            <th class="border-0 pb-2">Total Paid</th>
+                            <th class="border-0 pb-2">Estado</th>
+                            <th class="border-0 pb-2 text-end pe-4">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in entradas %}
+                        <tr class="border-bottom border-light">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                         style="width:34px;height:34px;background:#EEF2FF;">
+                                        <i class="bi bi-dribbble" style="color:var(--primary-color);font-size:0.8rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold" style="color:var(--primary-color);">
+                                            Club Atlético vs. {{ e.rival }}
+                                        </div>
+                                        <div class="text-muted" style="font-size:0.7rem;">
+                                            {% if e.fecha_partido %}{{ e.fecha_partido.strftime('%d %b %Y') }}{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-secondary">
+                                {{ e.fecha_compra.strftime('%d %b %Y') if e.fecha_compra else '—' }}
+                            </td>
+                            <td>
+                                <span class="badge px-2 py-1"
+                                      style="background:#EEF2FF;color:var(--primary-color);font-size:0.72rem;">
+                                    {{ e.sector }}
+                                </span>
+                            </td>
+                            <td class="fw-bold" style="color:var(--primary-color);">
+                                ${{ "{:,.0f}".format(e.precio_pagado) }}
+                            </td>
+                            <td>
+                                <span class="badge px-2 py-1"
+                                      style="{% if e.estado == 'valido' %}background:#DCFCE7;color:#15803D;{% else %}background:#FEE2E2;color:#B91C1C;{% endif %}font-size:0.7rem;">
+                                    {{ 'Efectivo' if e.estado == 'valido' else 'Anulada' }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{{ url_for('entradas.ver_entrada', ticket_id=e['_id']) }}"
+                                   class="btn btn-sm"
+                                   style="font-size:0.72rem;color:var(--primary-color);border:1px solid #E2E8F0;border-radius:6px;padding:0.25rem 0.6rem;">
+                                    <i class="bi bi-qr-code-scan me-1"></i>Ver QR
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5 small">
+                                <i class="bi bi-ticket-perforated d-block fs-3 mb-2 text-black-50"></i>
+                                Todavía no compraste ninguna entrada.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-4 pt-3 border-top border-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="fw-bold small" style="color:var(--primary-color);">Portal de Socios</span>
+            <div class="d-flex gap-3" style="font-size:0.72rem;color:#94A3B8;">
+                <a href="#" class="text-muted text-decoration-none">Contacto</a>
+                <a href="#" class="text-muted text-decoration-none">Términos y Condiciones</a>
+                <a href="#" class="text-muted text-decoration-none">Privacidad</a>
+                <span>© 2024 Portal de Socios - Club Atlético.</span>
+            </div>
+        </div>
+{% endblock %}

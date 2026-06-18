@@ -1,0 +1,234 @@
+{% extends 'socios/layout_socio.html' %}
+{% block socio_content %}
+
+        <!-- Breadcrumb + header -->
+        <nav aria-label="breadcrumb" class="mb-1">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('entradas.index') }}" class="text-decoration-none text-muted small">Entradas</a>
+                </li>
+                <li class="breadcrumb-item active text-muted small">Selección de Ubicación</li>
+            </ol>
+        </nav>
+        <div class="mb-3">
+            <h4 class="fw-bold m-0" style="color:var(--primary-color);">Confirmación de Ubicación</h4>
+            <p class="text-muted small m-0">
+                Partido: Club Atlético vs {{ partido.rival }}
+                {% if partido.fecha %} | Fecha: {{ partido.fecha.strftime('%d %b %Y') }}{% endif %}
+            </p>
+        </div>
+
+        <div class="row g-4">
+
+            <!-- Columna izquierda: mapa + sectores -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+
+                    <!-- Mapa del estadio (CSS) -->
+                    <div class="mb-3">
+                        <div class="fw-semibold small mb-2" style="color:var(--primary-color);">Mapa del Estadio</div>
+                        <div class="estadio-mapa-wrap position-relative d-flex align-items-center justify-content-center"
+                             style="background:#1a472a;border-radius:12px;height:160px;overflow:hidden;">
+                            <!-- Líneas del campo -->
+                            <div style="position:absolute;width:58%;height:68%;border:1.5px solid rgba(255,255,255,0.25);border-radius:4px;"></div>
+                            <div style="position:absolute;width:58%;height:68%;border:1.5px solid rgba(255,255,255,0.25);border-radius:4px;">
+                                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:28%;padding-bottom:28%;border:1.5px solid rgba(255,255,255,0.2);border-radius:50%;"></div>
+                                <div style="position:absolute;top:50%;left:0;right:0;border-top:1.5px solid rgba(255,255,255,0.2);"></div>
+                            </div>
+                            <!-- Labels sectores -->
+                            <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.7);font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Platea Alta</div>
+                            <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.7);font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Popular Sur</div>
+                            <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.7);font-size:0.6rem;font-weight:700;text-transform:uppercase;writing-mode:vertical-rl;letter-spacing:0.5px;">Popular</div>
+                            <div style="position:absolute;right:10px;top:50%;transform:translateY(-50%) rotate(180deg);color:rgba(255,255,255,0.7);font-size:0.6rem;font-weight:700;text-transform:uppercase;writing-mode:vertical-rl;letter-spacing:0.5px;">Preferencial</div>
+                            <!-- Campo label -->
+                            <span style="color:rgba(255,255,255,0.25);font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Campo de Juego</span>
+                        </div>
+                    </div>
+
+                    <!-- Selector de sector -->
+                    <div class="fw-semibold small mb-3" style="color:var(--primary-color);">Seleccioná tu Sector</div>
+
+                    <form method="POST" action="{{ url_for('entradas.iniciar_pago') }}" id="form-compra">
+                        <input type="hidden" name="partido_id" value="{{ partido._id }}" id="input-partido-id">
+                        <input type="hidden" name="sector_nombre" id="input-sector-nombre">
+
+                        <div class="row g-3">
+                            {% for s in partido.sectores %}
+                            {% set disponibles = s.capacidad - s.vendidos %}
+                            {% set agotado = (disponibles <= 0) %}
+                            {% set disponibilidad_pct = ((disponibles / s.capacidad) * 100) | round | int if s.capacidad > 0 else 0 %}
+                            {% set precio_desc = (s.precio * (1 - descuento)) | round | int %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="sector-card rounded-3 p-3 h-100 {% if agotado %}opacity-50{% endif %}"
+                                     style="border:2px solid #E2E8F0;cursor:{% if agotado %}not-allowed{% else %}pointer{% endif %};"
+                                     {% if not agotado %}
+                                     onclick="seleccionarSector(this, '{{ s.nombre }}', {{ s.precio }}, {{ precio_desc }})"
+                                     {% endif %}
+                                     data-nombre="{{ s.nombre }}"
+                                     data-precio="{{ s.precio }}"
+                                     data-precio-final="{{ precio_desc }}">
+
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="fw-bold small" style="color:var(--primary-color);">{{ s.nombre }}</span>
+                                        {% if agotado %}
+                                        <span class="badge px-2 py-1"
+                                              style="background:var(--secondary-color);color:#000;font-size:0.62rem;font-weight:700;">
+                                            Agotado
+                                        </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Disponibilidad -->
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <div class="progress flex-grow-1" style="height:4px;border-radius:4px;">
+                                            <div class="progress-bar {% if disponibilidad_pct > 50 %}bg-success{% elif disponibilidad_pct > 20 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                 style="width:{{ disponibilidad_pct }}%;"></div>
+                                        </div>
+                                        <span style="font-size:0.65rem;color:#64748B;min-width:30px;">{{ disponibilidad_pct }}%</span>
+                                    </div>
+                                    <div class="text-muted mb-2" style="font-size:0.68rem;">{{ disponibilidad_pct }}% Disponibilidad</div>
+
+                                    <!-- Precios -->
+                                    {% if descuento > 0 %}
+                                    <div class="text-muted" style="font-size:0.72rem;text-decoration:line-through;">
+                                        ${{ "{:,.0f}".format(s.precio) }}
+                                    </div>
+                                    <div class="fw-bold" style="font-size:1.1rem;color:var(--primary-color);">
+                                        ${{ "{:,.0f}".format(precio_desc) }}
+                                    </div>
+                                    {% else %}
+                                    <div class="fw-bold" style="font-size:1.1rem;color:var(--primary-color);">
+                                        ${{ "{:,.0f}".format(s.precio) }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </form>
+
+                    {% if descuento > 0 %}
+                    <div class="mt-3 p-2 rounded-3 d-flex align-items-center gap-2"
+                         style="background:#DCFCE7;border:1px solid #BBF7D0;">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span class="small" style="color:#15803D;">
+                            <strong>¡Ahorraste un 30%!</strong> Por ser Socio Al Día, el sistema aplicó automáticamente el descuento institucional en tu tarifa.
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Columna derecha: resumen -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-3">
+                    <!-- Estado del socio -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3"
+                         style="border-bottom:1px solid #E2E8F0;">
+                        <div>
+                            <div class="text-muted" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;">Estado de Socio</div>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                {% if socio.estado == 'al_dia' %}
+                                <span class="badge px-2 py-1" style="background:#DCFCE7;color:#15803D;font-size:0.72rem;">● AL DÍA</span>
+                                {% else %}
+                                <span class="badge px-2 py-1" style="background:#FEE2E2;color:#B91C1C;font-size:0.72rem;">● EN MORA</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="avatar-circle">{{ current_user.nombre[0] }}{{ current_user.apellido[0] }}</div>
+                    </div>
+                    <div class="fw-semibold small mb-1" style="color:var(--primary-color);">
+                        Socio {{ socio.categoria }} #{{ socio.dni[:5] }}
+                    </div>
+                    {% if descuento > 0 %}
+                    <div class="text-muted" style="font-size:0.72rem;">
+                        Beneficio: {{ (descuento * 100) | int }}% Off en Entradas
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Resumen de compra -->
+                <div class="card border-0 shadow-sm rounded-4 p-4"
+                     style="background-color:var(--primary-color);color:#fff;">
+                    <div class="fw-bold mb-3" style="font-size:0.88rem;">Resumen de Compra</div>
+
+                    <div class="d-flex justify-content-between mb-2" style="font-size:0.82rem;">
+                        <span style="color:rgba(255,255,255,0.6);">Ubicación</span>
+                        <span id="sum-ubicacion" class="fw-semibold">—</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2" style="font-size:0.82rem;">
+                        <span style="color:rgba(255,255,255,0.6);">Precio Base</span>
+                        <span id="sum-precio-base">$0</span>
+                    </div>
+                    {% if descuento > 0 %}
+                    <div class="d-flex justify-content-between mb-3 pb-3"
+                         style="font-size:0.82rem;border-bottom:1px solid rgba(255,255,255,0.12);">
+                        <span style="color:var(--secondary-color);">% Descuento Socio</span>
+                        <span id="sum-descuento" style="color:var(--secondary-color);">-$0</span>
+                    </div>
+                    {% else %}
+                    <div class="mb-3 pb-3" style="border-bottom:1px solid rgba(255,255,255,0.12);"></div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-baseline mb-4">
+                        <span style="font-size:0.78rem;color:rgba(255,255,255,0.6);">Total a pagar</span>
+                        <span id="sum-total" class="fw-bold" style="font-size:1.6rem;line-height:1;">$0</span>
+                    </div>
+
+                    <button type="submit" form="form-compra" id="btn-confirmar"
+                            class="btn w-100 fw-bold py-2 mb-2" disabled
+                            style="background-color:var(--secondary-color);color:#000;border:none;border-radius:8px;font-size:0.88rem;">
+                        Confirmar Reserva &rarr;
+                    </button>
+                    <a href="{{ url_for('entradas.index') }}"
+                       class="btn w-100 py-2"
+                       style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.14);border-radius:8px;font-size:0.82rem;text-decoration:none;display:block;text-align:center;">
+                        Cambiar Partido
+                    </a>
+
+                    {% if descuento > 0 %}
+                    <div class="mt-3 p-2 rounded-3" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.2);">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-info-circle-fill text-danger mt-1" style="font-size:0.75rem;flex-shrink:0;"></i>
+                            <span style="font-size:0.7rem;color:rgba(255,255,255,0.65);">
+                                Al confirmar, el cargo se debitará automáticamente de tu método de pago vinculado.
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+<script>
+const DESCUENTO = {{ descuento }};
+
+function seleccionarSector(el, nombre, precioBase, precioFinal) {
+    document.querySelectorAll('.sector-card').forEach(c => {
+        c.style.borderColor = '#E2E8F0';
+        c.style.background = '#fff';
+    });
+    el.style.borderColor = 'var(--secondary-color)';
+    el.style.background = '#FFFBEB';
+
+    document.getElementById('input-sector-nombre').value = nombre;
+
+    document.getElementById('sum-ubicacion').textContent = nombre;
+    document.getElementById('sum-precio-base').textContent =
+        '$' + precioBase.toLocaleString('es-AR');
+
+    const descEl = document.getElementById('sum-descuento');
+    if (descEl) {
+        const descMonto = precioBase - precioFinal;
+        descEl.textContent = '-$' + descMonto.toLocaleString('es-AR');
+    }
+
+    document.getElementById('sum-total').textContent =
+        '$' + precioFinal.toLocaleString('es-AR');
+
+    document.getElementById('btn-confirmar').disabled = false;
+}
+</script>
+
+{% endblock %}

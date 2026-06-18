@@ -1,0 +1,306 @@
+{% extends 'admin/layout_admin.html' %}
+{% block admin_content %}
+<div class="container-fluid p-0">
+
+    <!-- Encabezado Principal y Buscador Superior -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+            <h4 class="fw-bold text-dark m-0">Panel de Administración</h4>
+            <p class="text-muted small m-0">Club Atlético — Gestión global en tiempo real conectado a Compass.</p>
+        </div>
+        <div class="col-md-6 d-flex justify-content-md-end mt-3 mt-md-0">
+            <form class="d-flex w-75" method="GET" action="{{ url_for('admin.dashboard') }}">
+                <div class="input-group custom-search-input shadow-sm w-100">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" class="form-control border-start-0 py-2 small" placeholder="Buscar socios (DNI, Nombre...)" value="{{ request.args.get('q', '') }}">
+                </div>
+            </form>
+            <div class="d-flex align-items-center gap-3 ms-3 text-secondary">
+                <i class="bi bi-bell fs-5 position-relative text-muted">
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                </i>
+                <div class="avatar-circle">A</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de KPI Reales -->
+    <div class="row g-3 mb-4">
+        <!-- Socios Activos -->
+        <div class="col-md-3">
+            <div class="kpi-card active-members shadow-sm h-100">
+                <div class="kpi-title">Socios Activos</div>
+                <div class="d-flex align-items-baseline gap-2 mt-2">
+                    <span class="kpi-value">{{ "{:,}".format(activos) }}</span>
+                    <small class="text-success fw-bold small"><i class="bi bi-arrow-up-short"></i>+2%</small>
+                </div>
+            </div>
+        </div>
+        <!-- Socios en Mora -->
+        <div class="col-md-3">
+            <div class="kpi-card delay-members shadow-sm h-100">
+                <div class="kpi-title">Socios en Mora</div>
+                <div class="d-flex align-items-baseline gap-2 mt-2">
+                    <span class="kpi-value">{{ "{:,}".format(mora) }}</span>
+                    <small class="text-danger fw-bold small"><i class="bi bi-arrow-up-short"></i>8.8%</small>
+                </div>
+            </div>
+        </div>
+        <!-- Ingresos Mensuales -->
+        <div class="col-md-3">
+            <div class="kpi-card revenue shadow-sm h-100">
+                <div class="kpi-title">Ingresos Mensuales</div>
+                <div class="d-flex align-items-baseline gap-2 mt-2">
+                    <span class="kpi-value">${{ "{:,.2f}".format(ingresos) }}</span>
+                </div>
+            </div>
+        </div>
+        <!-- Aforo Próximo Partido -->
+        <div class="col-md-3">
+            <div class="kpi-card tickets shadow-sm h-100">
+                <div class="kpi-title">Entradas Próx. Partido</div>
+                <div class="d-flex align-items-baseline gap-2 mt-2">
+                    <span class="kpi-value">{{ "{:,}".format(aforo) }}</span>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle py-1 px-2 font-monospace">75% Capacidad</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción y  Seguridad Real -->
+    <div class="row g-4 mb-4">
+        <!-- Tarjetas de Acceso Rápido del Club -->
+        <div class="col-lg-8">
+            <div class="row g-3 h-100">
+                <div class="col-md-4">
+                    <button class="action-card-btn bg-dark-blue w-100 h-100 border-0 p-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPartido">
+                        <i class="bi bi-calendar-plus display-6 mb-2 d-block"></i>
+                        <span>Cargar Partido</span>
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ url_for('admin.gestionar_cuotas') }}" class="action-card-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none p-4 shadow-sm">
+                        <i class="bi bi-cash-coin display-6 text-primary mb-2 d-block"></i>
+                        <span>Registrar Pago Manual</span>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    {% if proximo_partido %}
+                    <a href="{{ url_for('admin.cierre_jornada', partido_id=proximo_partido['_id']) }}"
+                       class="action-card-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none p-4 shadow-sm">
+                        <i class="bi bi-flag-fill display-6 text-danger mb-2 d-block"></i>
+                        <span>Cerrar Jornada</span>
+                    </a>
+                    {% else %}
+                    <button class="action-card-btn w-100 h-100 p-4 shadow-sm" disabled>
+                        <i class="bi bi-flag display-6 text-muted mb-2 d-block"></i>
+                        <span class="text-muted">Sin Partido Activo</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuadro de Seguridad Operativa -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="fw-bold text-dark m-0 small">SEGURIDAD OPERATIVA</h6>
+                        <small class="text-muted">vs {{ operativo.rival }}</small>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center small py-2 border-bottom border-light">
+                    <span class="text-secondary"><i class="bi bi-shield-fill text-primary me-2"></i>Policía Provincial</span>
+                    <span class="fw-bold text-dark">{{ operativo.policias }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center small py-2 border-bottom border-light">
+                    <span class="text-secondary"><i class="bi bi-person-badge-fill text-secondary me-2"></i>Seguridad Privada</span>
+                    <span class="fw-bold text-dark">{{ operativo.seguridad_privada }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center small py-2 border-bottom border-light">
+                    <span class="text-secondary"><i class="bi bi-people-fill text-muted me-2"></i>Utedyc / Controles</span>
+                    <span class="fw-bold text-dark">{{ operativo.stewards }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2">
+                    <div>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Costo operativo est:</small>
+                        <span class="fw-bold text-dark">${{ "{:,.2f}".format(operativo.costo) }}</span>
+                    </div>
+                    <button class="btn btn-sm btn-link text-primary text-decoration-none fw-bold p-0 small" data-bs-toggle="modal" data-bs-target="#modalOperativo">Cargar Plan →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actividad Reciente -->
+    <div class="row g-4">
+        <!-- Línea de tiempo de Actividad -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h6 class="fw-bold text-dark mb-4"><i class="bi bi-clock-history me-2"></i>Actividad Reciente</h6>
+                <div class="timeline-container position-relative">
+                    {% for log in logs %}
+                    <div class="d-flex gap-3 mb-4 position-relative">
+                        <div class="timeline-icon bg-light rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="bi {{ log.icono }} {{ log.color }}"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark small m-0">{{ log.texto }}</div>
+                            <small class="text-muted d-block small">{{ log.subtexto }}</small>
+                            <span class="text-black-50 d-block mt-1 small" style="font-size: 0.7rem;">{{ log.tiempo }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="btn btn-sm btn-outline-light text-primary border-light w-100 mt-auto py-2 rounded-3 small">Ver Log Completo</button>
+            </div>
+        </div>
+
+        <!-- Listado Geral de Socios Activos -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 bg-white h-100 overflow-hidden">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark m-0">Gestión de Socios</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-light border-light small px-3"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                        <button class="btn btn-sm btn-light border-light small px-3"><i class="bi bi-arrow-down-up me-1"></i>Ordenar</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small">
+                            <tr>
+                                <th class="ps-4">SOCIO</th>
+                                <th>CATEGORÍA</th>
+                                <th>ESTADO</th>
+                                <th>DNI</th>
+                                <th class="text-end pe-4">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            {% for s in socios %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-circle">
+                                            {{ s.nombre[0] }}{{ s.apellido[0] }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ s.nombre }} {{ s.apellido }}</div>
+                                            <small class="text-muted" style="font-size: 0.75rem;">#{{ s.dni[:3] }}.{{ s.dni[3:6] }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-secondary fw-medium">{{ s.categoria }}</td>
+                                <td>
+                                    <span class="status-badge {% if s.estado == 'al_dia' %}al-dia{% else %}en-mora{% endif %}">
+                                        {{ 'Al día' if s.estado == 'al_dia' else 'En mora' }}
+                                    </span>
+                                </td>
+                                <td class="text-secondary">{{ s.dni }}</td>
+                                <td class="text-end pe-4">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm text-muted p-0 border-0" type="button" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-light">
+                                            <li><a class="dropdown-menu-item text-danger small px-3 py-2 d-block text-decoration-none" href="{{ url_for('admin.baja_socio', socio_id=s['_id']) }}" onclick="return confirm('¿Aplicar baja lógica a este socio?');"><i class="bi bi-trash3 me-2"></i>Dar de Baja</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">Ningún socio coincide con los filtros de Compass.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Programar Partido  -->
+<div class="modal fade" id="modalPartido" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom border-light py-3">
+                <h6 class="modal-title fw-bold text-dark"><i class="bi bi-calendar-plus-fill text-primary me-2"></i>Programar Nuevo Partido</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.nuevo_partido') }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary">Rival</label>
+                        <input type="text" name="rival" class="form-control" required placeholder="Ej. Boca Juniors">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary">Fecha y Hora</label>
+                        <input type="datetime-local" name="fecha" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary">Estadio</label>
+                        <input type="text" name="estadio" class="form-control" required placeholder="Sede Local">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-medium text-secondary">Competencia / Torneo</label>
+                        <select name="competencia" class="form-select">
+                            <option value="Liga Profesional">Liga Profesional</option>
+                            <option value="Copa Argentina">Copa Argentina</option>
+                            <option value="Copa de la Liga">Copa de la Liga</option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="es_local" value="true">
+                </div>
+                <div class="modal-footer border-top border-light py-3">
+                    <button type="button" class="btn btn-sm btn-light border-light px-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-primary-custom px-4">Publicar Partido</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Plan de Seguridad Operativa -->
+<div class="modal fade" id="modalOperativo" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom border-light py-3">
+                <h6 class="modal-title fw-bold text-dark"><i class="bi bi-shield-lock-fill text-dark me-2"></i>Actualizar Plan de Seguridad</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            {% if proximo_partido %}
+            <form method="POST" action="{{ url_for('admin.guardar_operativo', partido_id=proximo_partido['_id']) }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary">Efectivos de Policía</label>
+                        <input type="number" name="policias" class="form-control" required value="{{ operativo.policias }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary">Personal de Seguridad Privada</label>
+                        <input type="number" name="seguridad_privada" class="form-control" required value="{{ operativo.seguridad_privada }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary">Controles / Utedyc / Stewards</label>
+                        <input type="number" name="stewards" class="form-control" required value="{{ operativo.stewards }}">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-medium text-secondary">Observaciones de Control</label>
+                        <textarea name="observaciones" class="form-control" rows="2" placeholder="Detalles del operativo policial..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-light py-3">
+                    <button type="button" class="btn btn-sm btn-light border-light px-3" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-sm btn-primary-custom px-4">Guardar Plan Operativo</button>
+                </div>
+            </form>
+            {% else %}
+            <div class="modal-body p-4 text-center text-muted small">
+                No hay ningún partido programado como próximo para asignarle seguridad.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

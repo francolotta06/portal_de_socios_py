@@ -1,0 +1,75 @@
+{% extends 'socios/layout_socio.html' %}
+{% block socio_content %}
+        <div class="mb-4">
+            <span class="text-muted texto-chico">Portal de Socios / Cuotas / Confirmar Pago</span>
+            <h4 class="fw-bold text-dark mt-1">Confirmá tu Pago con PayPal</h4>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+
+            <!-- Resumen de lo que se va a pagar -->
+            <div class="col-lg-5">
+                <div class="card p-4 text-white border-0 fondo-pago-oscuro">
+                    <h6 class="fw-bold mb-3">Resumen del Pago</h6>
+
+                    <div class="d-flex justify-content-between small mb-2 opacity-75">
+                        <span>Subtotal ({{ cantidad_cuotas }} período/s)</span>
+                        <span>${{ "{:,.2f}".format(subtotal) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-2 opacity-75">
+                        <span>Recargo por mora (10%)</span>
+                        <span>${{ "{:,.2f}".format(recargo_mora) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-3 opacity-75">
+                        <span>Gastos administrativos fijos</span>
+                        <span>$250,00</span>
+                    </div>
+                    <hr class="border-secondary">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold">Total a Pagar (ARS)</span>
+                        <span class="fs-2 fw-bold text-warning">${{ "{:,.2f}".format(total_final) }}</span>
+                    </div>
+                    <p class="texto-mini opacity-50 mt-1">
+                        * El cargo en PayPal aparece en USD equivalente (tasa de demo).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Formulario que inicia el pago PayPal -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm p-4 redondeado-16">
+                    <h6 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-paypal text-primary me-2"></i>Pagar con PayPal
+                    </h6>
+                    <p class="text-muted texto-chico mb-4">
+                        Serás redirigido al sitio seguro de PayPal para completar el pago.
+                        Tu sesión queda guardada y regresás automáticamente al portal.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('cuotas.iniciar_pago') }}">
+                        {% for id in ids_a_pagar %}
+                            <input type="hidden" name="cuotas_a_liquidar" value="{{ id }}">
+                        {% endfor %}
+
+                        <div class="aviso-paypal mb-4">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Pago procesado con <strong>encriptación SSL</strong> por PayPal.
+                            El portal no almacena datos de tarjetas.
+                        </div>
+
+                        <button type="submit" class="boton-paypal">
+                            <i class="bi bi-paypal me-2"></i>
+                            Ir a PayPal — Pagar ${{ "{:,.2f}".format(total_final) }} ARS
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('cuotas.mis_cuotas') }}" class="text-muted texto-chico text-decoration-none">
+                            <i class="bi bi-arrow-left me-1"></i> Cancelar y volver
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+{% endblock %}

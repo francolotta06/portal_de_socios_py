@@ -1,0 +1,231 @@
+{% extends 'admin/layout_admin.html' %}
+{% block admin_content %}
+
+<nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none text-muted small">Gestión de Eventos</a>
+        </li>
+        <li class="breadcrumb-item active text-muted small">Finalizar Partido</li>
+    </ol>
+</nav>
+
+<h3 class="fw-bold mb-4" style="color: var(--primary-color);">Cierre de Jornada Deportiva</h3>
+
+<form method="POST" action="{{ url_for('admin.finalizar_partido', partido_id=partido['_id']) }}">
+<div class="row g-4">
+
+    <!-- Columna izquierda: marcador + tabla sectores -->
+    <div class="col-lg-7">
+
+        <!-- Tarjeta marcador -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+            <div class="d-flex align-items-center justify-content-center gap-4 py-3">
+                <!-- Local -->
+                <div class="text-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2"
+                         style="width:62px;height:62px;background:#EEF2FF;">
+                        <i class="bi bi-shield-fill-check fs-2" style="color:var(--primary-color);"></i>
+                    </div>
+                    <div class="fw-bold small" style="color:var(--primary-color);">Nuestro Club</div>
+                    <div class="text-muted subtitulo-mayus">Local</div>
+                </div>
+
+                <!-- Inputs de goles -->
+                <div class="d-flex align-items-center gap-3">
+                    <input type="number" name="goles_local"
+                           class="score-input form-control text-center fw-bold"
+                           min="0" max="99" value="{{ partido.goles_local }}" required>
+                    <span class="fw-bold fs-4 text-muted">—</span>
+                    <input type="number" name="goles_visitante"
+                           class="score-input form-control text-center fw-bold"
+                           min="0" max="99" value="{{ partido.goles_visitante }}" required>
+                </div>
+
+                <!-- Visitante -->
+                <div class="text-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2"
+                         style="width:62px;height:62px;background:#F1F5F9;">
+                        <i class="bi bi-dribbble fs-2 text-secondary"></i>
+                    </div>
+                    <div class="fw-bold small" style="color:var(--primary-color);">{{ partido.rival }}</div>
+                    <div class="text-muted subtitulo-mayus">Visitante</div>
+                </div>
+            </div>
+
+            <!-- Detalles del partido -->
+            <div class="row g-0 border-top border-light pt-3 mt-2 text-center">
+                <div class="col-4">
+                    <div class="text-muted subtitulo-mayus mb-1">Fecha</div>
+                    <div class="d-flex align-items-center justify-content-center gap-1">
+                        <i class="bi bi-calendar3 small" style="color:var(--primary-color);"></i>
+                        <span class="fw-medium small">
+                            {% if partido.fecha %}
+                                {{ partido.fecha.strftime('%d de %B') }}
+                            {% else %}—{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="col-4 border-start border-end border-light">
+                    <div class="text-muted subtitulo-mayus mb-1">Estadio</div>
+                    <div class="d-flex align-items-center justify-content-center gap-1">
+                        <i class="bi bi-building small" style="color:var(--primary-color);"></i>
+                        <span class="fw-medium small">{{ partido.estadio }}</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-muted subtitulo-mayus mb-1">Torneo</div>
+                    <div class="d-flex align-items-center justify-content-center gap-1">
+                        <i class="bi bi-award small" style="color:var(--primary-color);"></i>
+                        <span class="fw-medium small">{{ partido.competencia }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla asistencia por sector -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold m-0" style="color:var(--primary-color);">Asistencia Real por Sector</h6>
+                <span class="badge rounded-pill px-2 py-1"
+                      style="background-color:#1E293B;color:#94A3B8;font-size:0.68rem;">
+                    Actualizado hace 5 min
+                </span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:0.85rem;">
+                    <thead style="font-size:0.68rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;">
+                        <tr class="border-bottom border-light">
+                            <th class="border-0 pb-2 ps-1">Sector</th>
+                            <th class="border-0 pb-2">Capacidad</th>
+                            <th class="border-0 pb-2">Ingresos</th>
+                            <th class="border-0 pb-2">Ocupación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sectores %}
+                        {% set ocupacion = ((s.vendidos / s.capacidad) * 100) | round | int if s.capacidad > 0 else 0 %}
+                        <tr>
+                            <td class="ps-1 fw-medium" style="color:var(--primary-color);">{{ s.nombre }}</td>
+                            <td class="text-secondary">{{ "{:,}".format(s.capacidad) }}</td>
+                            <td class="fw-medium">{{ "{:,}".format(s.vendidos) }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height:6px;border-radius:4px;min-width:80px;">
+                                        <div class="progress-bar
+                                            {% if ocupacion >= 90 %}bg-success
+                                            {% elif ocupacion >= 70 %}bg-warning
+                                            {% else %}bg-danger{% endif %}"
+                                             style="width:{{ ocupacion }}%;"></div>
+                                    </div>
+                                    <span class="fw-bold small
+                                        {% if ocupacion >= 90 %}text-success
+                                        {% elif ocupacion >= 70 %}text-warning
+                                        {% else %}text-danger{% endif %}">
+                                        {{ ocupacion }}%
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4 small">Sin sectores configurados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna derecha: estadísticas + formulario -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100"
+             style="background-color:var(--primary-color);color:#ffffff;">
+
+            <div class="mb-4">
+                <span style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--secondary-color);">
+                    Estadísticas del Evento
+                </span>
+            </div>
+
+            <!-- Recaudación -->
+            <div class="mb-3">
+                <div style="font-size:0.75rem;color:rgba(255,255,255,0.55);">Recaudación Total Bruta</div>
+                <div class="fw-bold" style="font-size:1.9rem;line-height:1.15;letter-spacing:-0.5px;">
+                    $ {{ "{:,.0f}".format(recaudacion_total) }}
+                </div>
+                <div class="mt-1" style="font-size:0.72rem;color:#34D399;">
+                    <i class="bi bi-arrow-up-short"></i> Datos en tiempo real desde MongoDB
+                </div>
+            </div>
+
+            <!-- Asistencia y socios -->
+            <div class="row g-3 py-3 mb-3"
+                 style="border-top:1px solid rgba(255,255,255,0.12);border-bottom:1px solid rgba(255,255,255,0.12);">
+                <div class="col-6">
+                    <div style="font-size:0.68rem;color:rgba(255,255,255,0.55);">Asistencia Total</div>
+                    <div class="fw-bold" style="font-size:1.4rem;">{{ "{:,}".format(total_asistencia) }}</div>
+                </div>
+                <div class="col-6">
+                    <div style="font-size:0.68rem;color:rgba(255,255,255,0.55);">Socios Activos</div>
+                    <div class="fw-bold" style="font-size:1.4rem;">{{ "{:,}".format(socios_activos) }}</div>
+                </div>
+            </div>
+
+            <!-- Incidentes -->
+            <div class="mb-4">
+                <div class="mb-2" style="font-size:0.72rem;color:rgba(255,255,255,0.55);">Incidentes Reportados</div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge px-2 py-1"
+                          style="background-color:rgba(239,68,68,0.2);color:#FCA5A5;font-size:0.7rem;">
+                        <i class="bi bi-heart-pulse-fill me-1"></i>{{ incidentes_medicos }} Médicos
+                    </span>
+                    <span class="badge px-2 py-1"
+                          style="background-color:rgba(251,191,36,0.2);color:#FDE68A;font-size:0.7rem;">
+                        <i class="bi bi-shield-exclamation me-1"></i>{{ incidentes_seguridad }} Seguridad
+                    </span>
+                </div>
+            </div>
+
+            <!-- Notas -->
+            <div class="mb-3">
+                <label class="form-label mb-1"
+                       style="font-size:0.72rem;color:rgba(255,255,255,0.55);font-weight:600;">
+                    Notas e Incidentes Menores
+                </label>
+                <textarea name="notas" class="form-control" rows="4"
+                          style="background-color:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);color:#ffffff;font-size:0.82rem;resize:none;"
+                          placeholder="Ingresar detalles relevantes del operativo de seguridad, clima o comportamiento del público..."></textarea>
+            </div>
+
+            <!-- Verificación -->
+            <div class="mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="checkVerificacion" required>
+                    <label class="form-check-label" for="checkVerificacion"
+                           style="font-size:0.8rem;color:rgba(255,255,255,0.65);">
+                        He verificado el recuento de taquilla y accesorios.
+                    </label>
+                </div>
+            </div>
+
+            <!-- Botón cerrar -->
+            <button type="submit" class="btn w-100 fw-bold py-2 mb-2"
+                    style="background-color:var(--secondary-color);color:#000;border:none;border-radius:8px;font-size:0.9rem;">
+                <i class="bi bi-check-circle-fill me-2"></i>Cerrar Partido y Guardar Resultados
+            </button>
+
+            <!-- Botón reporte -->
+            <button type="button" class="btn w-100 py-2"
+                    style="background-color:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75);border:1px solid rgba(255,255,255,0.14);border-radius:8px;font-size:0.85rem;">
+                <i class="bi bi-download me-2"></i>Descargar Reporte Operativo
+            </button>
+
+        </div>
+    </div>
+
+</div>
+</form>
+
+{% endblock %}

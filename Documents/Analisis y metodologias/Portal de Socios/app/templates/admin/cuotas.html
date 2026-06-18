@@ -1,0 +1,231 @@
+{% extends 'admin/layout_admin.html' %}
+{% block admin_content %}
+<div class="container-fluid p-0">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark m-0">Gestionar Cuotas</h4>
+            <p class="text-muted small m-0">Panel administrativo de recaudación y morosidad.</p>
+        </div>
+    
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="kpi-card revenue shadow-sm bg-white">
+                <div class="kpi-title">Recaudación Mensual</div>
+                <div class="kpi-value mt-1">${{ "{:,.2f}".format(recaudacion) }}</div>
+                <small class="text-success fw-bold small"><i class="bi bi-arrow-up-short"></i> +12.5% vs mes anterior</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card delay-members shadow-sm bg-white">
+                <div class="kpi-title">Morosidad Total</div>
+                <div class="kpi-value mt-1 text-danger-custom">${{ "{:,.2f}".format(morosidad) }}</div>
+                <small class="text-danger fw-bold small"><i class="bi bi-exclamation-circle"></i> {{ morosos|length }} socios en deuda</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card active-members shadow-sm bg-white">
+                <div class="kpi-title">Cobros en Efectivo</div>
+                <div class="kpi-value mt-1 text-success-custom">${{ "{:,.2f}".format(efectivo) }}</div>
+                <small class="text-muted small">Sede Social Hoy</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card tickets shadow-sm bg-white">
+                <div class="kpi-title">Socios Al Día</div>
+                <div class="kpi-value mt-1">{{ porcentaje }}%</div>
+                <div class="progress mt-2">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ porcentaje }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white h-100">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark m-0">Listado de Socios</h6>
+                    <form class="d-flex" method="GET" action="{{ url_for('admin.gestionar_cuotas') }}">
+                        <div class="input-group custom-search-input input-group-sm">
+                            <span class="input-group-text bg-white border-0 text-muted"><i class="bi bi-search"></i></span>
+                            <input type="text" name="q" class="form-control border-0 bg-white" placeholder="Buscar por DNI o Nombre..." value="{{ request.args.get('q', '') }}">
+                        </div>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 table-fixed-cuotas">
+                        <thead class="table-light text-muted small">
+                            <tr>
+                                <th class="ps-4">SOCIO</th>
+                                <th>CATEGORÍA</th>
+                                <th>ESTADO</th>
+                                <th>DEUDA</th>
+                                <th class="text-end pe-4">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            {% for m in morosos %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-circle">{{ m.nombre[0] }}{{ m.apellido[0] }}</div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ m.nombre }} {{ m.apellido }}</div>
+                                            <small class="text-muted">Socio #{{ m.dni[:3] }}{{ m.dni[3:5] }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-secondary fw-medium">{{ m.categoria }}</td>
+                                <td>
+                                    <span class="status-badge {% if m.estado == 'mora' %}en-mora{% else %}suspendido{% endif %}">
+                                        {{ 'En Mora' if m.estado == 'mora' else 'Suspendido' }}
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-danger">${{ "{:,.2f}".format(15500.0) }}</td>
+                                <td class="text-end pe-4">
+                                    <button type="button" class="btn btn-sm btn-link text-primary p-0"><i class="bi bi-receipt fs-5"></i></button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">Ningún socio con saldos pendientes coincide con el filtro.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center py-3">
+                    <small class="text-muted">Mostrando {{ morosos|length }} de {{ morosos|length }} socios</small>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-light border" disabled>&lt;</button>
+                        <button class="btn btn-primary-custom px-3 small">1</button>
+                        <button class="btn btn-light border">&gt;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-person-workspace text-primary"></i> Registrar Pago Manual
+                </h6>
+                <form method="POST" action="{{ url_for('admin.gestionar_cuotas') }}">
+                    <input type="hidden" name="form_action" value="registrar_pago">
+                    
+                    <div class="mb-2">
+                        <label class="form-label small fw-medium text-secondary mb-1">DNI del Socio</label>
+                        <input type="text" name="dni" class="form-control form-control-sm" required placeholder="Ej: 32.455.677">
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-medium text-secondary mb-1">Monto ($)</label>
+                            <input type="number" step="0.01" name="monto_manual" class="form-control form-control-sm" placeholder="0.00">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-medium text-secondary mb-1">Mes</label>
+                            <select name="mes" class="form-select form-select-sm">
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary mb-1">Método</label>
+                        <select name="metodo" class="form-select form-select-sm">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Debito">Débito</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-warning btn-secondary-custom w-100 py-2 fw-bold text-dark">
+                        <i class="bi bi-printer me-1"></i> Cobrar y Emitir Comprobante
+                    </button>
+                </form>
+            </div>
+
+            <!-- Generar cuotas en masa -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-0">
+                <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar-plus text-primary"></i> Generar Cuotas Mensuales
+                </h6>
+                <p class="text-muted small mb-3">Crea cuotas pendientes para <strong>todos los socios activos</strong> de un período. Si ya tienen cuota para ese mes, se omiten.</p>
+                <form method="POST" action="{{ url_for('admin.generar_cuotas') }}">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-medium text-secondary mb-1">Mes</label>
+                            <select name="mes" class="form-select form-select-sm">
+                                {% for m, nombre in [(1,'Enero'),(2,'Febrero'),(3,'Marzo'),(4,'Abril'),(5,'Mayo'),(6,'Junio'),(7,'Julio'),(8,'Agosto'),(9,'Septiembre'),(10,'Octubre'),(11,'Noviembre'),(12,'Diciembre')] %}
+                                <option value="{{ m }}" {% if m == now.month %}selected{% endif %}>{{ nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-medium text-secondary mb-1">Año</label>
+                            <input type="number" name="anio" class="form-control form-control-sm" value="{{ now.year }}" min="2020" max="2030">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-secondary mb-1">Monto ($)</label>
+                        <input type="number" step="0.01" name="monto" class="form-control form-control-sm" value="15500" required>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary-custom w-100 py-2 fw-bold"
+                            onclick="return confirm('¿Generar cuotas para todos los socios activos de este período?')">
+                        <i class="bi bi-lightning-fill me-1"></i> Generar para Todos los Socios
+                    </button>
+                </form>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 text-white" style="background-color: var(--tertiary-color);">
+                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-sliders text-warning"></i> Actualizar Aranceles
+                </h6>
+                <form method="POST" action="{{ url_for('admin.gestionar_cuotas') }}">
+                    <input type="hidden" name="form_action" value="actualizar_aranceles">
+                    
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="small fw-medium opacity-75">Activo</label>
+                        <div class="input-group input-group-sm w-50">
+                            <span class="input-group-text bg-transparent border-secondary text-white-50">$</span>
+                            <input type="number" name="arancel_activo" class="form-control bg-transparent border-secondary text-white text-end" value="8500">
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="small fw-medium opacity-75">Cadete</label>
+                        <div class="input-group input-group-sm w-50">
+                            <span class="input-group-text bg-transparent border-secondary text-white-50">$</span>
+                            <input type="number" name="arancel_cadete" class="form-control bg-transparent border-secondary text-white text-end" value="6200">
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="small fw-medium opacity-75">Infantil</label>
+                        <div class="input-group input-group-sm w-50">
+                            <span class="input-group-text bg-transparent border-secondary text-white-50">$</span>
+                            <input type="number" name="arancel_infantil" class="form-control bg-transparent border-secondary text-white text-end" value="4500">
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <label class="small fw-medium opacity-75">Jubilado</label>
+                        <div class="input-group input-group-sm w-50">
+                            <span class="input-group-text bg-transparent border-secondary text-white-50">$</span>
+                            <input type="number" name="arancel_jubilado" class="form-control bg-transparent border-secondary text-white text-end" value="5000">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-sm btn-light w-100 py-2 fw-bold text-dark mb-2">Guardar Nuevos Valores</button>
+                    <div class="text-center"><small class="text-white-50 font-size-xs">PRÓXIMO VENCIMIENTO: 10 NOV</small></div>
+                </form>
+            </div>
+
+            
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends 'socios/layout_socio.html' %}
+{% block socio_content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{{ url_for('socios.carnet') }}" class="text-muted text-decoration-none small">
+        <i class="bi bi-arrow-left"></i> Volver al perfil
+    </a>
+</div>
+
+<h4 class="fw-bold mb-1" style="color:var(--primary-color);">Editar mis datos</h4>
+<p class="text-muted small mb-4">Podés actualizar tu información de contacto y tu contraseña.</p>
+
+<div class="row g-4">
+
+    <!-- Datos de contacto -->
+    <div class="col-lg-7">
+        <form method="POST" action="{{ url_for('socios.editar_perfil') }}">
+
+            <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+                <h6 class="fw-bold mb-3" style="color:var(--primary-color);">
+                    <i class="bi bi-person-lines-fill me-2"></i>Datos de contacto
+                </h6>
+
+                <!-- Campos de solo lectura -->
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold text-muted">Nombre</label>
+                        <input type="text" class="form-control form-control-sm bg-light"
+                               value="{{ socio.nombre }}" disabled>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold text-muted">Apellido</label>
+                        <input type="text" class="form-control form-control-sm bg-light"
+                               value="{{ socio.apellido }}" disabled>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold text-muted">DNI</label>
+                        <input type="text" class="form-control form-control-sm bg-light"
+                               value="{{ socio.dni }}" disabled>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold text-muted">Fecha de nacimiento</label>
+                        <input type="text" class="form-control form-control-sm bg-light"
+                               value="{{ socio.fecha_nacimiento }}" disabled>
+                    </div>
+                </div>
+
+                <div class="border-top pt-3">
+                    <p class="text-muted mb-3" style="font-size:0.75rem;">
+                        <i class="bi bi-lock-fill me-1"></i>
+                        Nombre, apellido, DNI y fecha de nacimiento solo pueden ser modificados por un administrador.
+                    </p>
+
+                    <!-- Campos editables -->
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold" style="color:var(--primary-color);">
+                                Correo electrónico
+                            </label>
+                            <input type="email" name="email" class="form-control form-control-sm"
+                                   value="{{ socio.email }}" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold" style="color:var(--primary-color);">
+                                Teléfono
+                            </label>
+                            <input type="tel" name="telefono" class="form-control form-control-sm"
+                                   value="{{ socio.telefono or '' }}">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold" style="color:var(--primary-color);">
+                                Dirección
+                            </label>
+                            <input type="text" name="direccion" class="form-control form-control-sm"
+                                   value="{{ socio.direccion or '' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cambiar contraseña -->
+            <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+                <h6 class="fw-bold mb-1" style="color:var(--primary-color);">
+                    <i class="bi bi-shield-lock-fill me-2"></i>Cambiar contraseña
+                </h6>
+                <p class="text-muted small mb-3">Dejá los campos en blanco si no querés cambiarla.</p>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold" style="color:var(--primary-color);">
+                            Contraseña actual
+                        </label>
+                        <input type="password" name="password_actual" class="form-control form-control-sm"
+                               placeholder="Requerida solo si cambiás la contraseña">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold" style="color:var(--primary-color);">
+                            Nueva contraseña
+                        </label>
+                        <input type="password" name="nuevo_password" class="form-control form-control-sm"
+                               placeholder="Mínimo 6 caracteres" minlength="6">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold" style="color:var(--primary-color);">
+                            Confirmar nueva contraseña
+                        </label>
+                        <input type="password" name="confirmar_password" class="form-control form-control-sm"
+                               placeholder="Repetí la contraseña">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-sm fw-bold px-4"
+                        style="background:var(--primary-color);color:#fff;border-radius:8px;">
+                    <i class="bi bi-check-lg me-1"></i>Guardar cambios
+                </button>
+                <a href="{{ url_for('socios.carnet') }}"
+                   class="btn btn-sm btn-outline-secondary fw-bold px-4"
+                   style="border-radius:8px;">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Panel derecho: resumen del socio -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+            <h6 class="fw-bold mb-3" style="color:var(--primary-color);">
+                <i class="bi bi-person-badge me-2"></i>Tu cuenta
+            </h6>
+            <div class="d-flex flex-column gap-3">
+                <div>
+                    <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">
+                        Categoría
+                    </div>
+                    <div class="fw-semibold small">Socio {{ socio.categoria }}</div>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">
+                        Estado
+                    </div>
+                    {% if socio.estado == 'al_dia' %}
+                    <span class="badge px-2 py-1" style="background:#DCFCE7;color:#15803D;font-size:0.72rem;">● AL DÍA</span>
+                    {% else %}
+                    <span class="badge px-2 py-1" style="background:#FEE2E2;color:#B91C1C;font-size:0.72rem;">● EN MORA</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">
+                        Miembro desde
+                    </div>
+                    <div class="fw-semibold small">
+                        {{ socio.fecha_registro.strftime('%d/%m/%Y') if socio.fecha_registro else '—' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

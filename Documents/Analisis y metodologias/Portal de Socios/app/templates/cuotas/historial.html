@@ -1,0 +1,233 @@
+{% extends 'socios/layout_socio.html' %}
+{% block socio_content %}
+
+        <!-- Top bar -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold m-0" style="color:var(--primary-color);">Gestión de Cuotas</h4>
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-bell fs-5 text-muted position-relative">
+                    {% if socio.estado == 'mora' %}
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    {% endif %}
+                </i>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="text-end">
+                        <div class="fw-semibold small" style="color:var(--primary-color);line-height:1.2;">
+                            {{ current_user.nombre }} {{ current_user.apellido }}
+                        </div>
+                        <div class="text-muted" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.5px;">
+                            SOCIO #{{ socio.dni }}
+                        </div>
+                    </div>
+                    <div class="avatar-circle">{{ current_user.nombre[0] }}{{ current_user.apellido[0] }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+
+            <!-- Panel izquierdo -->
+            <div class="col-lg-4">
+
+                <!-- Categoría de Socio -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-3">
+                    <div class="text-muted mb-1" style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">
+                        Categoría de Socio
+                    </div>
+                    <h4 class="fw-bold mb-2" style="color:var(--primary-color);">Socio Activo</h4>
+                    {% if socio.estado == 'al_dia' %}
+                    <span class="badge px-2 py-1 mb-3" style="background:#DCFCE7;color:#15803D;font-size:0.75rem;">● Al día</span>
+                    {% else %}
+                    <span class="badge px-2 py-1 mb-3" style="background:#FEE2E2;color:#B91C1C;font-size:0.75rem;">● En mora</span>
+                    {% endif %}
+                    <div class="border-top border-light pt-3">
+                        <div class="text-muted mb-1" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;">Cuota Mensual</div>
+                        <div class="fw-bold fs-4" style="color:var(--primary-color);">
+                            ${{ "{:,.2f}".format(cuota_mensual) }}
+                        </div>
+                        <a href="{{ url_for('socios.perfil') }}" class="text-decoration-none small fw-semibold"
+                           style="color:var(--primary-color);">Detalles &gt;</a>
+                    </div>
+                </div>
+
+                <!-- Resumen de Pago -->
+                <div class="card border-0 shadow-sm rounded-4 p-4"
+                     style="background-color:var(--primary-color);color:#ffffff;">
+                    <div class="fw-bold mb-2" style="font-size:0.85rem;">Resumen de Pago</div>
+                    <p class="mb-3" style="font-size:0.78rem;color:rgba(255,255,255,0.65);">
+                        Seleccione las cuotas a pagar de la lista contigua.
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center mb-4 py-2"
+                         style="border-top:1px solid rgba(255,255,255,0.12);border-bottom:1px solid rgba(255,255,255,0.12);">
+                        <span style="font-size:0.82rem;color:rgba(255,255,255,0.7);">Total a pagar</span>
+                        <span class="fw-bold" id="total-pago" style="font-size:1.05rem;">$0,00</span>
+                    </div>
+                    <button type="submit" form="form-cuotas"
+                            class="btn w-100 fw-bold py-2 mb-2"
+                            style="background-color:var(--secondary-color);color:#000;border:none;border-radius:8px;font-size:0.88rem;">
+                        <i class="bi bi-wallet2 me-1"></i> Pagar Cuotas
+                    </button>
+                    <div class="text-center" style="font-size:0.65rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">
+                        Pago 100% Seguro con SSL
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Panel principal -->
+            <div class="col-lg-8">
+
+                <!-- Cuotas Pendientes -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-hourglass-split" style="color:var(--primary-color);"></i>
+                            <h6 class="fw-bold m-0" style="color:var(--primary-color);">Cuotas Pendientes</h6>
+                        </div>
+                        {% if pendientes %}
+                        <span class="badge rounded-pill px-2 py-1"
+                              style="background:#FFF7ED;color:#C2410C;font-size:0.7rem;font-weight:600;">
+                            {{ pendientes|length }} pendiente{{ 's' if pendientes|length != 1 else '' }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <form method="GET" action="{{ url_for('cuotas.simulacion_pago') }}" id="form-cuotas">
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0" style="font-size:0.82rem;">
+                                <thead style="font-size:0.68rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">
+                                    <tr class="border-bottom border-light">
+                                        <th class="border-0 pb-2">Seleccionar</th>
+                                        <th class="border-0 pb-2">Mes / Año</th>
+                                        <th class="border-0 pb-2">Vencimiento</th>
+                                        <th class="border-0 pb-2">Monto</th>
+                                        <th class="border-0 pb-2">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in pendientes %}
+                                    <tr class="border-bottom border-light">
+                                        <td>
+                                            <input type="checkbox" name="cuota_ids" value="{{ c._id }}"
+                                                   data-monto="{{ c.monto }}"
+                                                   class="form-check-input cuota-check" checked>
+                                        </td>
+                                        <td class="fw-semibold" style="color:var(--primary-color);">
+                                            {{ ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][c.mes - 1] }}
+                                            {{ c.anio }}
+                                        </td>
+                                        <td class="text-muted">{{ c.fecha_vencimiento.strftime('%d/%m/%Y') }}</td>
+                                        <td class="fw-bold" style="color:var(--primary-color);">
+                                            ${{ "{:,.2f}".format(c.monto) }}
+                                        </td>
+                                        <td>
+                                            {% if c.estado == 'vencida' %}
+                                            <span class="badge-status-cuota badge-vencida">VENCIDA</span>
+                                            {% else %}
+                                            <span class="badge-status-cuota badge-por-vencer">POR VENCER</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4 small">
+                                            <i class="bi bi-check-circle text-success me-1"></i>
+                                            No tenés cuotas pendientes. ¡Estás al día!
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Historial de Pagos -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-clock-history" style="color:var(--primary-color);"></i>
+                            <h6 class="fw-bold m-0" style="color:var(--primary-color);">Historial de Pagos</h6>
+                        </div>
+                        <a href="{{ url_for('cuotas.mis_cuotas') }}" class="text-decoration-none small fw-semibold"
+                           style="color:var(--primary-color);">Ver todos</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0" style="font-size:0.82rem;">
+                            <thead style="font-size:0.68rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">
+                                <tr class="border-bottom border-light">
+                                    <th class="border-0 pb-2">Fecha de Pago</th>
+                                    <th class="border-0 pb-2">Mes Pagado</th>
+                                    <th class="border-0 pb-2">Monto</th>
+                                    <th class="border-0 pb-2 text-end">Recibo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in pagadas[:3] %}
+                                <tr class="border-bottom border-light">
+                                    <td class="text-secondary">
+                                        {{ c.fecha_pago.strftime('%d/%m/%Y') if c.fecha_pago else '—' }}
+                                    </td>
+                                    <td class="fw-semibold" style="color:var(--primary-color);">
+                                        {{ ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][c.mes - 1] }}
+                                        {{ c.anio }}
+                                    </td>
+                                    <td class="fw-bold" style="color:var(--primary-color);">
+                                        ${{ "{:,.2f}".format(c.monto) }}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('cuotas.recibo', cuota_id=c._id) }}"
+                                           class="btn btn-sm fw-semibold"
+                                           style="font-size:0.72rem;color:var(--primary-color);border:1px solid #E2E8F0;border-radius:6px;padding:0.25rem 0.75rem;">
+                                            <i class="bi bi-file-earmark-text me-1"></i>Ver Recibo
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4 small">
+                                        No hay pagos registrados todavía.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if pagadas %}
+                    <div class="text-center mt-2" style="font-size:0.68rem;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">
+                        Mostrando los últimos 3 meses
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-4 pt-3 border-top border-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span style="font-size:0.72rem;color:#94A3B8;">
+                © 2024 Portal de Socios - Club Atlético. Todos los derechos reservados.
+            </span>
+            <div class="d-flex gap-3" style="font-size:0.72rem;">
+                <a href="#" class="text-muted text-decoration-none">Contacto</a>
+                <a href="#" class="text-muted text-decoration-none">Términos y Condiciones</a>
+                <a href="#" class="text-muted text-decoration-none">Privacidad</a>
+            </div>
+        </div>
+
+<script>
+function updateTotal() {
+    let total = 0;
+    document.querySelectorAll('.cuota-check:checked').forEach(cb => {
+        total += parseFloat(cb.dataset.monto) || 0;
+    });
+    document.getElementById('total-pago').textContent =
+        '$' + total.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+document.querySelectorAll('.cuota-check').forEach(cb => cb.addEventListener('change', updateTotal));
+updateTotal();
+</script>
+
+{% endblock %}

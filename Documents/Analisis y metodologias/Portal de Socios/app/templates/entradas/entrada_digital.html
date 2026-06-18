@@ -1,0 +1,59 @@
+{% extends 'socios/layout_socio.html' %}
+{% block socio_content %}
+        <div class="mb-4">
+            <span class="text-muted texto-chico">Portal de Socios / Mis Entradas / Entrada Digital</span>
+            <h2 class="fw-bold text-dark mt-1">Tu Entrada Digital</h2>
+            <p class="text-muted texto-chico m-0">Presentá este código QR en el ingreso al estadio.</p>
+        </div>
+
+        <div class="tarjeta-entrada shadow-lg">
+
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <p class="texto-chico mb-1 texto-blanco-tenue text-uppercase" style="letter-spacing:1px;">Club Atlético</p>
+                    <h3 class="fw-bold mb-0">vs {{ ticket.rival }}</h3>
+                    <p class="texto-mini mt-1 mb-0 texto-blanco-tenue">{{ ticket.competencia }}</p>
+                </div>
+                <span class="badge bg-success px-3 py-2">✓ VÁLIDA</span>
+            </div>
+
+            <div class="sector-entrada mb-4">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <p class="texto-mini mb-1 texto-blanco-tenue">SECTOR</p>
+                        <p class="fw-bold mb-0">{{ ticket.sector }}</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="texto-mini mb-1 texto-blanco-tenue">FECHA DEL PARTIDO</p>
+                        <p class="fw-bold mb-0">{{ ticket.fecha_partido.strftime('%d/%m/%Y %H:%M') }}hs</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="texto-mini mb-1 texto-blanco-tenue">TITULAR</p>
+                        <p class="fw-bold mb-0">{{ socio.nombre }} {{ socio.apellido }}</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="texto-mini mb-1 texto-blanco-tenue">PRECIO PAGADO</p>
+                        <p class="fw-bold mb-0">${{ "{:,.2f}".format(ticket.precio_pagado) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-end">
+                <div>
+                    <p class="texto-mini mb-1 texto-blanco-tenue">Compra:</p>
+                    <p class="mb-0 texto-chico">{{ ticket.fecha_compra.strftime('%d/%m/%Y %H:%M') }}hs</p>
+                    <p class="codigo-token mt-2">{{ ticket.codigo_qr_token }}</p>
+                </div>
+                <div class="qr-entrada">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ ticket.codigo_qr_token }}"
+                         alt="QR Entrada" width="120" height="120">
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('entradas.historial') }}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left me-1"></i> Volver al Historial
+            </a>
+        </div>
+{% endblock %}

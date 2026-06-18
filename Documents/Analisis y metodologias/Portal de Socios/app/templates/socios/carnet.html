@@ -1,0 +1,65 @@
+{% extends 'socios/layout_socio.html' %}
+{% block socio_content %}
+        <div class="mb-4">
+            <span class="text-muted texto-chico">Portal de Socios / Mi Carnet</span>
+            <h2 class="fw-bold text-dark mt-1">Carnet Digital</h2>
+            <p class="text-muted texto-chico m-0">
+                Presentá este carnet en las instalaciones del club para identificarte como socio.
+            </p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7">
+
+                <div class="carnet-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            {% if socio.estado == 'al_dia' %}
+                                <span class="badge bg-success px-2 py-1 text-uppercase estado-carnet-texto">● AL DÍA</span>
+                            {% else %}
+                                <span class="badge bg-danger px-2 py-1 text-uppercase estado-carnet-texto">● EN MORA</span>
+                            {% endif %}
+                        </div>
+                        <img src="{{ url_for('static', filename='images/escudo.png') }}"
+                             alt="Club" class="escudo-barra">
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="etiqueta-carnet">CATEGORÍA</div>
+                        <h4 class="fw-bold mb-0">Socio {{ socio.categoria }}</h4>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="etiqueta-carnet">TITULAR</div>
+                        <h3 class="fw-bold mb-0">{{ socio.nombre }} {{ socio.apellido }}</h3>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div>
+                            <span class="etiqueta-carnet d-block">Número de Socio / DNI</span>
+                            <span class="carnet-number">{{ socio.dni }}</span>
+                            <small class="d-block mt-2 opacity-75 fecha-alta-carnet">
+                                Alta: {{ socio.fecha_registro.strftime('%m/%Y') }}
+                            </small>
+                        </div>
+                        <div class="qr-placeholder bg-white p-1 rounded-2 caja-qr">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{ qr_data }}"
+                                 alt="QR Socio" class="img-fluid">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <a href="{{ url_for('socios.editar_perfil') }}" class="btn btn-sm fw-bold"
+                       style="background:var(--primary-color);color:#fff;border-radius:8px;font-size:0.78rem;">
+                        <i class="bi bi-pencil-square me-1"></i> Editar datos
+                    </a>
+                    <a href="{{ url_for('socios.perfil') }}" class="btn btn-outline-secondary btn-sm"
+                       style="border-radius:8px;font-size:0.78rem;">
+                        <i class="bi bi-arrow-left me-1"></i> Volver al Dashboard
+                    </a>
+                </div>
+
+            </div>
+        </div>
+{% endblock %}

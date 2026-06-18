@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block layout %}
+<div class="admin-layout">
+    {% include 'socios/barra_lateral.html' %}
+
+    <main class="main-content-admin">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show small shadow-sm" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block socio_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

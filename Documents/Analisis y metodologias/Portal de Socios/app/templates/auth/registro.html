@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block layout %}
+<div class="container-fluid p-0">
+    <div class="row g-0 min-vh-100">
+        <div class="col-lg-5 login-sidebar d-flex flex-column justify-content-between text-white p-5">
+            <div>
+                <h2 class="register-main-title text-white mb-4">Formá parte de la pasión</h2>
+                <p class="sidebar-text">Completá el formulario para darte de alta de forma inmediata en nuestro sistema de socios.</p>
+            </div>
+            <div>
+                <p class="footer-text text-white-50 m-0">© 2026 Club Atlético.</p>
+            </div>
+        </div>
+
+        <div class="col-lg-7 login-area-contenido d-flex align-items-center justify-content-center p-5">
+            <div class="login-card p-4 shadow-sm my-4 registro-card-ancha">
+                <h3 class="fw-bold mb-1 text-dark">Registro de Nuevo Socio</h3>
+                <p class="text-muted small mb-3">Ingresá tus datos reales para generar tu carnet digital.</p>
+
+                <form method="POST" action="{{ url_for('socios.registro') }}">
+                    
+                    <div class="form-section-title"><i class="bi bi-person-fill"></i> Datos Personales</div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Nombre</label>
+                            <input type="text" name="nombre" class="form-control" placeholder="Juan" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Apellido</label>
+                            <input type="text" name="apellido" class="form-control" placeholder="Pérez" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">DNI (Único)</label>
+                            <input type="text" name="dni" class="form-control" placeholder="8 números" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Fecha de Nacimiento</label>
+                            <input type="date" name="fecha_nacimiento" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Dirección</label>
+                            <input type="text" name="direccion" class="form-control" placeholder="Calle 123">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control" placeholder="1123456789">
+                        </div>
+                    </div>
+
+                    <div class="form-section-title mt-3"><i class="bi bi-shield-lock-fill"></i> Seguridad de la Cuenta</div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary fw-semibold">Correo Electrónico</label>
+                        <div class="input-group custom-input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="email" class="form-control" placeholder="nombre@correo.com" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small text-secondary fw-semibold">Contraseña de Acceso</label>
+                        <div class="input-group custom-input-group">
+                            <span class="input-group-text"><i class="bi bi-key"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="Mínimo 8 caracteres" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom w-100 mb-3">Confirmar Registro</button>
+                    
+                    <div class="text-center">
+                        <p class="small text-muted mb-0">¿Ya sos socio? <a href="{{ url_for('socios.login') }}" class="fw-semibold text-decoration-none">Iniciá sesión</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

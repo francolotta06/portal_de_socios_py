@@ -1,0 +1,256 @@
+{% extends 'admin/layout_admin.html' %}
+{% block admin_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold m-0" style="color:var(--primary-color);">Gestionar Entradas</h4>
+    <div class="d-flex align-items-center gap-3 text-muted">
+        <i class="bi bi-bell fs-5 position-relative">
+            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+        </i>
+        <div class="avatar-circle">A</div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Columna principal -->
+    <div class="col-lg-7">
+
+        <!-- Próximos Encuentros -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold m-0" style="color:var(--primary-color);">Próximos Encuentros</h6>
+                <span class="badge rounded-pill border"
+                      style="font-size:0.68rem;color:#64748B;background:#F8FAFC;font-weight:500;">
+                    Filtro: Todo el Mes
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" style="font-size:0.82rem;">
+                    <thead style="font-size:0.68rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">
+                        <tr class="border-bottom border-light">
+                            <th class="border-0 pb-2">Partido / Evento</th>
+                            <th class="border-0 pb-2">Fecha</th>
+                            <th class="border-0 pb-2">Estado</th>
+                            <th class="border-0 pb-2">Ventas</th>
+                            <th class="border-0 pb-2 text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in partidos %}
+                        {% set total_cap  = p.sectores | sum(attribute='capacidad') if p.sectores else 1 %}
+                        {% set total_vend = p.sectores | sum(attribute='vendidos') if p.sectores else 0 %}
+                        {% set pct = ((total_vend / total_cap) * 100) | round | int if total_cap > 0 else 0 %}
+                        <tr class="border-bottom border-light">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                         style="width:36px;height:36px;background:#EEF2FF;">
+                                        <i class="bi bi-dribbble" style="color:var(--primary-color);font-size:0.9rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold" style="color:var(--primary-color);">Club Local vs. {{ p.rival }}</div>
+                                        <div class="text-muted" style="font-size:0.7rem;">{{ p.competencia }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-secondary fw-medium">
+                                {% if p.fecha %}
+                                    {{ p.fecha.strftime('%d %b,') }}<br>
+                                    <span style="font-size:0.7rem;">{{ p.fecha.strftime('%H:%Mhs') }}</span>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if p.estado == 'proximo' %}
+                                <span class="badge px-2 py-1 rounded-pill"
+                                      style="background:#DCFCE7;color:#15803D;font-size:0.7rem;">
+                                    Ventas Activas
+                                </span>
+                                {% elif p.estado == 'finalizado' %}
+                                <span class="badge px-2 py-1 rounded-pill"
+                                      style="background:#E2E8F0;color:#475569;font-size:0.7rem;">
+                                    Finalizado
+                                </span>
+                                {% else %}
+                                <span class="badge px-2 py-1 rounded-pill"
+                                      style="background:#FEF9C3;color:#A16207;font-size:0.7rem;">
+                                    Próximamente
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td style="min-width:90px;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height:5px;border-radius:4px;">
+                                        <div class="progress-bar {% if pct >= 80 %}bg-success{% elif pct >= 50 %}bg-warning{% else %}bg-secondary{% endif %}"
+                                             style="width:{{ pct }}%;"></div>
+                                    </div>
+                                    <span class="fw-bold" style="font-size:0.72rem;min-width:28px;">{{ pct }}%</span>
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                {% if p.estado == 'proximo' %}
+                                <a href="{{ url_for('admin.cierre_jornada', partido_id=p['_id']) }}"
+                                   class="btn btn-sm btn-light border-light p-1 px-2"
+                                   title="Cerrar jornada">
+                                    <i class="bi bi-pencil-square" style="color:var(--primary-color);"></i>
+                                </a>
+                                {% else %}
+                                <button class="btn btn-sm btn-light border-light p-1 px-2" disabled>
+                                    <i class="bi bi-gear text-muted"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4 small">
+                                No hay partidos cargados. Creá uno desde el Dashboard.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Ajuste de Sectores -->
+        {% if partido_actual %}
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="fw-bold m-0" style="color:var(--primary-color);">Ajuste de Sectores</h6>
+                    <small class="text-muted">Configuración: Club Local vs. {{ partido_actual.rival }}</small>
+                </div>
+                <button form="form-sectores" type="submit"
+                        class="btn btn-sm fw-semibold px-3"
+                        style="background-color:var(--primary-color);color:#fff;border-radius:8px;font-size:0.82rem;">
+                    <i class="bi bi-floppy-fill me-1"></i>Guardar Cambios
+                </button>
+            </div>
+
+            <form id="form-sectores" method="POST"
+                  action="{{ url_for('admin.actualizar_sectores', partido_id=partido_actual['_id']) }}">
+                <div class="row g-3">
+                    {% for s in sectores %}
+                    {% set sector_labels = ['NORTE', 'ESTE', 'OESTE', 'SUR'] %}
+                    {% set sector_icons  = ['bi-geo-alt-fill', 'bi-house-fill', 'bi-compass-fill', 'bi-signpost-fill'] %}
+                    {% set i = loop.index0 %}
+                    <div class="col-md-4">
+                        <div class="card border rounded-3 p-3 h-100" style="border-color:#E2E8F0 !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;color:#64748B;">
+                                    SECTOR {{ sector_labels[i] if i < 4 else '' }}
+                                </span>
+                                <div class="d-flex align-items-center gap-1">
+                                    {% if s.vendidos > 0 %}
+                                    <span class="badge rounded-pill"
+                                          style="background:var(--secondary-color);color:#000;font-size:0.65rem;">
+                                        +{{ s.vendidos }}
+                                    </span>
+                                    {% endif %}
+                                    <i class="bi {{ sector_icons[i] if i < 4 else 'bi-grid' }} text-muted"
+                                       style="font-size:0.85rem;"></i>
+                                </div>
+                            </div>
+                            <div class="fw-bold mb-3" style="color:var(--primary-color);">{{ s.nombre }}</div>
+                            <input type="hidden" name="sector_nombre" value="{{ s.nombre }}">
+                            <div class="mb-2">
+                                <label class="form-label" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94A3B8;">
+                                    Capacidad Total
+                                </label>
+                                <input type="number" name="sector_capacidad"
+                                       class="form-control form-control-sm"
+                                       value="{{ s.capacidad }}" min="0" required>
+                            </div>
+                            <div>
+                                <label class="form-label" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94A3B8;">
+                                    Precio Socio ($)
+                                </label>
+                                <input type="number" name="sector_precio"
+                                       class="form-control form-control-sm"
+                                       value="{{ s.precio | int }}" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Columna derecha -->
+    <div class="col-lg-5 d-flex flex-column gap-4">
+
+        <!-- Reporte de Recaudación -->
+        <div class="card border-0 shadow-sm rounded-4 p-4"
+             style="background-color:var(--primary-color);color:#ffffff;">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <span style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--secondary-color);">
+                    Reporte de Recaudación
+                </span>
+                <i class="bi bi-graph-up-arrow" style="color:var(--secondary-color);font-size:1.1rem;"></i>
+            </div>
+            <div class="fw-bold mb-1" style="font-size:2rem;line-height:1.1;">
+                ${{ "%.1fM" % (total_recau / 1_000_000) if total_recau >= 1_000_000 else "${:,.0f}".format(total_recau) }}
+            </div>
+            <div class="mb-4" style="font-size:0.72rem;color:rgba(255,255,255,0.55);">
+                Ingresos totales proyectados para el evento
+            </div>
+
+            {% set sector_display = [
+                ('Popular',     recaudacion_tickets.get('Popular', 0)),
+                ('Platea Alta', recaudacion_tickets.get('Platea Alta', 0)),
+                ('Preferencial',recaudacion_tickets.get('Preferencial', 0))
+            ] %}
+            {% for label, monto in sector_display %}
+            {% set pct_sec = ((monto / total_recau) * 100) | round | int if total_recau > 0 else 0 %}
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span style="font-size:0.72rem;color:rgba(255,255,255,0.65);">{{ label }}</span>
+                    <span class="fw-semibold" style="font-size:0.8rem;">${{ "{:,.0f}".format(monto) }}</span>
+                </div>
+                <div class="progress" style="height:5px;border-radius:4px;background:rgba(255,255,255,0.12);">
+                    <div class="progress-bar" style="width:{{ pct_sec }}%;background:var(--secondary-color);border-radius:4px;"></div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <button class="btn w-100 mt-2 fw-semibold py-2"
+                    style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-size:0.82rem;">
+                Ver Reporte Detallado (RF-A08)
+            </button>
+        </div>
+
+        <!-- Anular Entradas -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-slash-circle-fill text-danger"></i>
+                <span class="fw-bold text-danger" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;">
+                    Anular Entradas
+                </span>
+            </div>
+            <p class="text-muted small mb-3">
+                Ingresá el ID de transacción o escaneá el código para invalidar un acceso emitido.
+            </p>
+            <form method="POST" action="{{ url_for('admin.gestionar_entradas') }}">
+                <div class="input-group mb-3" style="border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;">
+                    <input type="text" name="transaction_id" class="form-control border-0"
+                           placeholder="ID: TXN-000-0000-000" style="font-size:0.82rem;">
+                    <span class="input-group-text bg-white border-0 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                </div>
+                <button type="submit"
+                        class="btn w-100 fw-bold py-2"
+                        style="background-color:#DC2626;color:#fff;border:none;border-radius:8px;font-size:0.85rem;">
+                    <i class="bi bi-x-circle-fill me-2"></i>Inhabilitar Entrada
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
