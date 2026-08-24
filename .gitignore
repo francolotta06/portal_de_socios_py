@@ -1,0 +1,23 @@
+# Python bytecode y caché
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+env/
+ENV/
+.env/
+
+# Variables de entorno y secretos locales
+.env
+instance/
+
+# Base de datos local SQLite (si no querés que se sobreescriba en Git)
+*.sqlite3
+*.db
+
+# Archivos del sistema / IDEs
+.vscode/
+.idea/
+.DS_Store
