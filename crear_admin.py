@@ -1,10 +1,14 @@
+import os
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
 from datetime import datetime
 
 bcrypt = Bcrypt()
-client = MongoClient('mongodb://localhost:27017/')
+
+# Lee la URI desde Render o usa localhost en desarrollo local
+mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
+client = MongoClient(mongo_uri)
 db_socios = client['socios']['socios']
 
 def generar_admin():
